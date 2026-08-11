@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Farm Dashboard & Management — Stackly Organic Farm</title>
+  <meta name="description" content="Manage your Stackly organic farm fields, track real-time harvest yields, weather forecasts, predictive analysis, and member accounts.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --forest: #1F3B2C;
+      --forest-dark: #122318;
+      --sidebar-bg: #1B1E1C;
+      --wheat: #D4A544;
+      --wheat-2: #E9C876;
+      --pastel-lime: #E2F1B0;
+      --pastel-green: #DCE7CE;
+      --clay: #A6613A;
+      --cream: #F6F1E4;
+      --paper: #FAF8F2;
+      --card-bg: #FFFFFF;
+      --sage: #7C9473;
+      --ink: #1B211E;
+      --ink-soft: #637069;
+      --line: rgba(31,59,44,0.08);
+      --border-radius: 20px;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { min-height:100vh; font-family:'Inter', sans-serif; background:#F4F6F0; color:var(--ink); }
+
+    /* Dashboard Layout */
+    .app-layout { display:flex; min-height:100vh; }
+
+    /* Sidebar Navigation */
+    aside.sidebar {
+      width: 260px; background: var(--sidebar-bg); color: var(--paper); display:flex; flex-direction:column;
+      justify-content:space-between; padding: 28px 20px; flex-shrink:0; position:sticky; top:0; height:100vh;
+      box-shadow: 6px 0 25px rgba(0,0,0,0.15); z-index:100;
+    }
+
+    .brand-header { display:flex; align-items:center; gap:12px; margin-bottom:36px; padding:0 8px; }
+    .brand-logo-img { height:36px; width:auto; filter:brightness(1.1); transition:transform 0.3s ease; }
+    .brand-logo-img:hover { transform:scale(1.06); }
+    .brand-name { font-family:'Fraunces', serif; font-weight:700; font-size:1.3rem; color:var(--paper); letter-spacing:-0.02em; }
+    .brand-name span { color:var(--pastel-lime); }
+
+    /* Enhanced Nav List & Tab Hover Animations */
+    .nav-list { list-style:none; display:flex; flex-direction:column; gap:8px; }
+    .nav-item-btn {
+      width:100%; display:flex; align-items:center; gap:14px; padding:13px 18px; border-radius:14px;
+      background:none; border:none; border-left:0px solid var(--wheat); color:rgba(252,250,243,0.7); font-size:0.92rem; font-weight:500;
+      cursor:pointer; transition:all 0.35s cubic-bezier(0.16, 1, 0.3, 1); text-align:left; font-family:'Inter', sans-serif;
+      position:relative; overflow:hidden;
+    }
+    .nav-item-btn::before {
+      content:""; position:absolute; inset:0; background:rgba(226,241,176,0.12); opacity:0; transition:opacity 0.3s ease; border-radius:14px;
+    }
+    .nav-item-btn:hover {
+      color:var(--pastel-lime); transform:translateX(6px) scale(1.02);
+    }
+    .nav-item-btn:hover::before { opacity:1; }
+    .nav-item-btn.active {
+      background: linear-gradient(135deg, #E2F1B0 0%, #DCE7CE 100%); color: var(--forest-dark); font-weight:700;
+      border-left:4px solid var(--wheat);
+      box-shadow: 0 8px 24px rgba(226,241,176,0.35); transform:translateX(2px);
+    }
+    .nav-item-btn.active::before { opacity:0; }
+    .nav-icon { font-size:1.15rem; transition:transform 0.3s ease; }
+    .nav-item-btn:hover .nav-icon { transform:scale(1.2) rotate(6deg); }
+
+    .sidebar-footer { padding-top:20px; border-top:1px solid rgba(255,255,255,0.08); }
+    .logout-btn {
+      width:100%; display:flex; align-items:center; gap:12px; padding:12px 16px; border-radius:12px;
+      background:none; border:none; color:rgba(252,250,243,0.6); font-size:0.9rem; font-weight:500;
+      cursor:pointer; transition:all 0.3s ease; text-decoration:none;
+    }
+    .logout-btn:hover { color:#E74C3C; background:rgba(231,76,60,0.12); transform:translateX(4px); }
+
+    /* Main Dashboard Content Area */
+    main.main-content { flex-grow:1; padding: 24px 32px; overflow-y:auto; }
+
+    /* Top Profile Bar with Role Switcher */
+    .top-bar { display:flex; justify-content:flex-end; align-items:center; margin-bottom:28px; gap:20px; flex-wrap:wrap; }
+
+    .top-right-group { display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+
+    .user-profile-badge {
+      display:flex; align-items:center; gap:12px; background:var(--card-bg); padding:6px 16px 6px 8px;
+      border-radius:100px; border:1px solid var(--line); box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+      cursor:pointer; transition:all 0.3s ease;
+    }
+    .user-profile-badge:hover { transform:translateY(-3px) scale(1.02); box-shadow: 0 8px 22px rgba(0,0,0,0.08); border-color:var(--wheat); }
+    .avatar-img { width:38px; height:38px; border-radius:50%; object-fit:cover; border:2px solid var(--wheat); }
+    .user-info-text { font-size:0.85rem; }
+    .user-name { font-weight:700; color:var(--forest); line-height:1.2; }
+    .user-role-tag { font-size:0.72rem; color:var(--ink-soft); font-family:'JetBrains Mono', monospace; }
+
+    /* Tab View Animations & Transitions */
+    .tab-view { display:none; opacity:0; transform:translateY(18px) scale(0.985); filter:blur(4px); }
+    .tab-view.active {
+      display:block; animation: tabViewIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes tabViewIn {
+      0% { opacity:0; transform:translateY(18px) scale(0.985); filter:blur(4px); }
+      100% { opacity:1; transform:translateY(0) scale(1); filter:blur(0px); }
+    }
+
+    /* Grid Layouts for Dashboard Overview */
+    .dash-grid { display:grid; grid-template-columns: 2fr 1.1fr; gap:26px; }
+    @media (max-width:1150px){ .dash-grid { grid-template-columns:1fr; } }
+
+    .grid-col { display:flex; flex-direction:column; gap:24px; }
+
+    /* Section Titles & Action Rows */
+    .sec-header-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px; }
+    .sec-title { font-family:'Fraunces', serif; font-size:1.25rem; font-weight:600; color:var(--forest); margin:0; }
+
+    /* Manager Quick Action Buttons */
+    .mgr-actions-row { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
+    .mgr-btn {
+      padding:8px 16px; border-radius:100px; font-size:0.82rem; font-weight:600; font-family:'Inter', sans-serif;
+      border:1px solid var(--line); background:var(--card-bg); color:var(--forest); cursor:pointer;
+      transition:all 0.3s cubic-bezier(0.16, 1, 0.3, 1); display:inline-flex; align-items:center; gap:6px;
+      box-shadow:0 4px 12px rgba(0,0,0,0.03);
+    }
+    .mgr-btn:hover {
+      background:var(--forest); color:var(--paper); border-color:var(--forest); transform:translateY(-3px) scale(1.03);
+      box-shadow:0 8px 20px rgba(31,59,44,0.2);
+    }
+    .mgr-btn.primary { background:var(--forest); color:var(--paper); }
+    .mgr-btn.primary:hover { background:var(--forest-dark); }
+
+    /* Summary Cards Row with Enhanced Hover Animations */
+    .summary-row { display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; }
+    @media (max-width:1200px){ .summary-row { grid-template-columns:repeat(2, 1fr); } }
+    @media (max-width:600px){ .summary-row { grid-template-columns:1fr; } }
+
+    .stat-card {
+      background: #E8F5E9; border-radius: var(--border-radius); padding: 20px 22px;
+      display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(31,59,44,0.08);
+      box-shadow: 0 6px 20px rgba(31,59,44,0.04); transition:all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      position:relative; overflow:hidden;
+    }
+    .stat-card:nth-child(2) { background: #F4FBE4; }
+    .stat-card:nth-child(3) { background: #EFEBE9; }
+    .stat-card:nth-child(4) { background: #E3F2FD; }
+
+    .stat-card:hover {
+      transform:translateY(-6px) scale(1.02); box-shadow:0 16px 36px rgba(31,59,44,0.12), 0 0 0 1px rgba(212,165,68,0.4);
+    }
+
+    .stat-info label { font-size:0.8rem; font-weight:600; color:var(--ink-soft); display:block; margin-bottom:4px; }
+    .stat-val-group { display:flex; align-items:baseline; gap:6px; }
+    .stat-val { font-family:'Fraunces', serif; font-size:1.8rem; font-weight:700; color:var(--forest-dark); }
+    .stat-unit { font-size:0.85rem; font-weight:600; color:var(--ink-soft); }
+
+    /* Circular Progress Ring */
+    .progress-ring-box { position:relative; width:60px; height:60px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .progress-ring-box svg { transform:rotate(-90deg); width:60px; height:60px; }
+    .progress-ring-bg { stroke: rgba(31,59,44,0.12); stroke-width:6; fill:none; }
+    .progress-ring-val { stroke: #2E7D32; stroke-width:6; stroke-dasharray: 163; stroke-linecap: round; fill:none; transition: stroke-dashoffset 1.2s cubic-bezier(0.16, 1, 0.3, 1); }
+    .ring-text { position:absolute; font-family:'JetBrains Mono', monospace; font-size:0.72rem; font-weight:700; color:var(--forest-dark); }
+
+    /* Manage Your Farm Hero Banner Card */
+    .farm-banner-card {
+      position:relative; border-radius: var(--border-radius); overflow:hidden; height:230px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.1); border:1px solid var(--line); transition:all 0.4s ease;
+    }
+    .farm-banner-card:hover { transform:translateY(-4px); box-shadow: 0 18px 45px rgba(0,0,0,0.18); border-color:var(--wheat); }
+    .farm-banner-img { width:100%; height:100%; object-fit:cover; display:block; transition:transform 0.8s ease; }
+    .farm-banner-card:hover .farm-banner-img { transform:scale(1.06); }
+    .farm-banner-overlay {
+      position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(18,35,24,0.88) 100%);
+      padding:24px; display:flex; flex-direction:column; justify-content:space-between; color:var(--paper);
+    }
+    .banner-tags { display:flex; gap:10px; flex-wrap:wrap; }
+    .b-tag {
+      background:rgba(255,255,255,0.22); backdrop-filter:blur(8px); padding:5px 14px; border-radius:100px;
+      font-size:0.75rem; font-weight:600; font-family:'JetBrains Mono', monospace; letter-spacing:0.04em; transition:all 0.3s ease;
+    }
+    .b-tag:hover { background:var(--wheat); color:var(--forest-dark); }
+    .banner-bottom h3 { font-family:'Fraunces', serif; font-size:1.6rem; margin-bottom:6px; }
+    .banner-bottom p { font-size:0.9rem; color:rgba(252,250,243,0.88); }
+
+    /* Predictive Analysis Month Cards with Hover */
+    .predictive-row { display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; }
+    @media (max-width:700px){ .predictive-row { grid-template-columns:1fr; } }
+
+    .predict-card {
+      background: var(--card-bg); border-radius:18px; padding:20px 18px; border:1px solid var(--line);
+      box-shadow:0 6px 18px rgba(0,0,0,0.03); transition:all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .predict-card:hover { transform:translateY(-6px) scale(1.02); box-shadow:0 16px 36px rgba(31,59,44,0.1); border-color:var(--wheat); }
+    .predict-month { font-family:'Fraunces', serif; font-weight:600; font-size:1.05rem; color:var(--forest); margin-bottom:14px; text-align:center; }
+
+    .bar-group { margin-bottom:10px; }
+    .bar-label { display:flex; justify-content:space-between; font-size:0.75rem; font-weight:600; color:var(--ink-soft); margin-bottom:4px; }
+    .bar-track { height:8px; background:#EEF2E6; border-radius:100px; overflow:hidden; }
+    .bar-fill { height:100%; border-radius:100px; transition:width 1.2s cubic-bezier(0.16, 1, 0.3, 1); }
+    .bar-fill.wheat { background:#2E7D32; }
+    .bar-fill.rice { background:#8BC34A; }
+    .bar-fill.maize { background:#FFB300; }
+
+    /* Weather Forecast Widget Column */
+    .weather-today-card {
+      background: #DCE7CE; border-radius:var(--border-radius); padding:22px 24px;
+      display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(31,59,44,0.08);
+      box-shadow: 0 6px 20px rgba(31,59,44,0.04); transition:all 0.35s ease;
+    }
+    .weather-today-card:hover { transform:translateY(-5px); box-shadow:0 16px 36px rgba(31,59,44,0.12); border-color:var(--forest); }
+    .w-temp-group { display:flex; align-items:center; gap:14px; }
+    .w-icon-big { font-size:2.6rem; transition:transform 0.4s ease; }
+    .weather-today-card:hover .w-icon-big { transform:scale(1.15) rotate(8deg); }
+    .w-temp-val { font-family:'Fraunces', serif; font-size:2.2rem; font-weight:700; color:var(--forest-dark); }
+    .w-temp-unit { font-size:1.1rem; color:var(--ink-soft); font-weight:500; }
+    .w-status { font-size:0.82rem; color:var(--ink-soft); margin-top:2px; font-weight:600; }
+
+    /* 4-Day Forecast Grid */
+    .forecast-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .forecast-item {
+      background: var(--card-bg); border-radius:16px; padding:16px; text-align:center; border:1px solid var(--line);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.02); transition:all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .forecast-item:hover { transform:translateY(-5px) scale(1.03); border-color:var(--wheat); box-shadow:0 12px 25px rgba(0,0,0,0.08); }
+    .f-date { font-size:0.75rem; font-weight:600; color:var(--ink-soft); margin-bottom:8px; font-family:'JetBrains Mono', monospace; }
+    .f-temp { font-family:'Fraunces', serif; font-size:1.6rem; font-weight:700; color:var(--forest); margin-bottom:4px; }
+    .f-desc { font-size:0.72rem; color:var(--ink-soft); }
+
+    /* Harvesting Cost Donut Card */
+    .cost-card {
+      background: #EAF4DD; border-radius:var(--border-radius); padding:24px; border:1px solid rgba(31,59,44,0.08);
+      box-shadow: 0 6px 20px rgba(31,59,44,0.04); transition:all 0.35s ease;
+    }
+    .cost-card:hover { transform:translateY(-5px); box-shadow:0 16px 36px rgba(31,59,44,0.12); border-color:var(--wheat); }
+    .cost-card-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+    .cost-card-head h4 { font-family:'Fraunces', serif; font-size:1.15rem; color:var(--forest); }
+
+    .cost-body { display:flex; justify-content:space-between; align-items:center; gap:20px; }
+    .cost-list { display:flex; flex-direction:column; gap:8px; width:50%; }
+    .cost-row { display:flex; justify-content:space-between; font-size:0.85rem; }
+    .cost-lbl { color:var(--ink-soft); font-weight:500; }
+    .cost-val { font-weight:700; color:var(--forest); font-family:'JetBrains Mono', monospace; }
+
+    .cost-total { margin-top:12px; padding-top:10px; border-top:1px dashed rgba(31,59,44,0.15); }
+    .cost-total label { font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-soft); display:block; }
+    .cost-total-num { font-family:'Fraunces', serif; font-size:1.8rem; font-weight:700; color:var(--forest-dark); }
+
+    /* Donut Chart Canvas SVG */
+    .donut-chart-box { width:95px; height:95px; position:relative; flex-shrink:0; transition:transform 0.4s ease; }
+    .cost-card:hover .donut-chart-box { transform:scale(1.08) rotate(15deg); }
+    .donut-chart-box svg { width:100%; height:100%; transform:rotate(-90deg); }
+
+    /* Generic Card Box for Extra Tabs */
+    .content-card-box {
+      background:var(--card-bg); border-radius:var(--border-radius); padding:30px; border:1px solid var(--line);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.03); margin-bottom:24px; transition:all 0.35s ease;
+    }
+    .content-card-box:hover { box-shadow: 0 16px 40px rgba(31,59,44,0.08); border-color:rgba(212,165,68,0.3); }
+
+    /* Enhanced Table Styles with Hover Effect */
+    .table-custom { width:100%; border-collapse:collapse; margin-top:16px; }
+    .table-custom th, .table-custom td { padding:14px 16px; text-align:left; border-bottom:1px solid var(--line); font-size:0.9rem; transition:all 0.25s ease; }
+    .table-custom th { font-family:'JetBrains Mono', monospace; font-size:0.75rem; text-transform:uppercase; color:var(--ink-soft); background:#F9FAF6; }
+    .table-custom tr { transition:all 0.25s ease; }
+    .table-custom tr:hover { background:#EEF4E8; transform:scale(1.006); box-shadow:0 4px 15px rgba(31,59,44,0.05); }
+
+    .badge-status {
+      padding:5px 14px; border-radius:100px; font-size:0.75rem; font-weight:600; font-family:'JetBrains Mono', monospace;
+      display:inline-block; transition:all 0.3s ease;
+    }
+    .badge-status:hover { transform:scale(1.08); }
+    .badge-status.ready { background:#E8F5E9; color:#2E7D32; border:1px solid rgba(46,125,50,0.2); }
+    .badge-status.pending { background:#FFF8E1; color:#F57F17; border:1px solid rgba(245,127,23,0.2); }
+    .badge-status.active { background:#E3F2FD; color:#1565C0; border:1px solid rgba(21,101,192,0.2); }
+
+    /* Responsive Sidebar Drawer */
+    .mobile-nav-bar { display:none; background:var(--sidebar-bg); padding:14px 20px; align-items:center; justify-content:space-between; color:var(--paper); }
+    @media (max-width:900px){
+      .app-layout { flex-direction:column; }
+      aside.sidebar { width:100%; height:auto; position:relative; }
+      .nav-list { flex-direction:row; overflow-x:auto; padding-bottom:8px; }
+      .nav-item-btn { white-space:nowrap; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-layout">
+    
+    <!-- Left Sidebar Navigation -->
+    <aside class="sidebar">
+      <div>
+        <div class="brand-header">
+          <a href="home.html" title="Back to Home">
+            <img src="logo_matching_light.webp" alt="Stackly Logo" class="brand-logo-img">
+          </a>
+        </div>
+
+        <ul class="nav-list" id="sidebarNavList">
+          <li>
+            <button class="nav-item-btn active" onclick="switchDashTab('dashboard', this)">
+              <span class="nav-icon">📊</span> <span class="tab-label-text">Dashboard</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" onclick="switchDashTab('analytics', this)">
+              <span class="nav-icon">📈</span> <span class="tab-label-text">Analytics</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" onclick="switchDashTab('fields', this)">
+              <span class="nav-icon">🌱</span> <span class="tab-label-text">Fields</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" onclick="switchDashTab('harvesting', this)">
+              <span class="nav-icon">🌾</span> <span class="tab-label-text">Harvesting</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" onclick="switchDashTab('finances', this)">
+              <span class="nav-icon">💰</span> <span class="tab-label-text">Finances</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" onclick="switchDashTab('weather', this)">
+              <span class="nav-icon">🌤️</span> <span class="tab-label-text">Weather</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <div class="sidebar-footer">
+        <a href="login.html" class="logout-btn">
+          <span class="nav-icon">🚪</span> Logout
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top Profile Bar with Role Switcher Toggle Pill -->
+      <div class="top-bar">
+        <div class="top-right-group">
+          <!-- User Profile Badge -->
+          <div class="user-profile-badge">
+            <img src="images/farm_img_086.webp" alt="Profile" class="avatar-img">
+            <div class="user-info-text">
+              <div class="user-name" id="profileNameDisplay">Clara Vance</div>
+              <div class="user-role-tag" id="profileRoleTagDisplay">Farm Manager • Active</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================ -->
+      <!-- TAB 1: MAIN DASHBOARD / FARM OPERATIONS VIEW -->
+      <!-- ============================================ -->
+      <div class="tab-view active" id="tabViewDashboard">
+        
+        <!-- Manager Quick Actions Row -->
+        <div class="mgr-actions-row" id="mgrActionsBar">
+          <button class="mgr-btn primary" onclick="location.href='404.html'"><span>➕</span> Log Today's Harvest</button>
+          <button class="mgr-btn" onclick="location.href='404.html'"><span>🚜</span> Dispatch Equipment</button>
+          <button class="mgr-btn" onclick="location.href='404.html'"><span>💧</span> Adjust Irrigation</button>
+          <button class="mgr-btn" onclick="location.href='404.html'"><span>📊</span> Export Soil Report</button>
+        </div>
+
+        <div class="dash-grid">
+          
+          <!-- Left Column (Summary + Manage Farm + Predictive Analysis) -->
+          <div class="grid-col">
+            
+            <!-- Summary Row Cards -->
+            <div>
+              <div class="sec-header-row">
+                <h2 class="sec-title" id="secTitleSummary">Farm Operations Summary</h2>
+                <span style="font-size:0.78rem; font-family:'JetBrains Mono',monospace; color:var(--forest); font-weight:600;">2026 HARVEST SEASON</span>
+              </div>
+
+              <div class="summary-row">
+                <!-- Wheat Card -->
+                <div class="stat-card">
+                  <div class="stat-info">
+                    <label id="lblWheat">Wheat Harvest</label>
+                    <div style="font-size:0.72rem; color:var(--ink-soft); margin-bottom:6px;" id="subWheat">Field #1 Production</div>
+                    <div class="stat-val-group">
+                      <span class="stat-val">125</span>
+                      <span class="stat-unit">Tons</span>
+                    </div>
+                  </div>
+                  <div class="progress-ring-box">
+                    <svg>
+                      <circle class="progress-ring-bg" cx="30" cy="30" r="24"></circle>
+                      <circle class="progress-ring-val" cx="30" cy="30" r="24" style="stroke-dashoffset: 130;"></circle>
+                    </svg>
+                    <span class="ring-text">78%</span>
+                  </div>
+                </div>
+
+                <!-- Produce Card -->
+                <div class="stat-card">
+                  <div class="stat-info">
+                    <label id="lblProduce">Vegetable Yield</label>
+                    <div style="font-size:0.72rem; color:var(--ink-soft); margin-bottom:6px;" id="subProduce">Field #2 Market Garden</div>
+                    <div class="stat-val-group">
+                      <span class="stat-val">980</span>
+                      <span class="stat-unit">Tons</span>
+                    </div>
+                  </div>
+                  <div class="progress-ring-box">
+                    <svg>
+                      <circle class="progress-ring-bg" cx="30" cy="30" r="24"></circle>
+                      <circle class="progress-ring-val" cx="30" cy="30" r="24" style="stroke-dashoffset: 95;"></circle>
+                    </svg>
+                    <span class="ring-text">92%</span>
+                  </div>
+                </div>
+
+                <!-- Soil Moisture Card -->
+                <div class="stat-card">
+                  <div class="stat-info">
+                    <label>Soil Moisture</label>
+                    <div style="font-size:0.72rem; color:var(--ink-soft); margin-bottom:6px;">Sub-surface Telemetry</div>
+                    <div class="stat-val-group">
+                      <span class="stat-val">62°</span>
+                      <span class="stat-unit">F</span>
+                    </div>
+                  </div>
+                  <span style="font-size:2rem;">💧</span>
+                </div>
+
+                <!-- Active Acreage Card -->
+                <div class="stat-card">
+                  <div class="stat-info">
+                    <label>Active Acreage</label>
+                    <div style="font-size:0.72rem; color:var(--ink-soft); margin-bottom:6px;">Willow Valley Base</div>
+                    <div class="stat-val-group">
+                      <span class="stat-val">90</span>
+                      <span class="stat-unit">Acres</span>
+                    </div>
+                  </div>
+                  <span style="font-size:2rem;">🌾</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Manage Your Farm Hero Card -->
+            <div>
+              <div class="sec-title" style="margin-bottom:12px;" id="secTitleFarm">Field Operations & Live Control</div>
+              <div class="farm-banner-card">
+                <img src="images/farm_img_076.webp" alt="Willow Valley Farm Fields" class="farm-banner-img">
+                <div class="farm-banner-overlay">
+                  <div class="banner-tags">
+                    <span class="b-tag">90 ACRES ACTIVE</span>
+                    <span class="b-tag">100% ORGANIC</span>
+                    <span class="b-tag" style="background:var(--pastel-lime); color:var(--forest-dark);">MANAGER LOGGED IN</span>
+                  </div>
+                  <div class="banner-bottom">
+                    <h3 id="bannerTitle">Willow Valley Field Operations Center</h3>
+                    <p id="bannerDesc">Field #1 Red Fife Wheat & Field #2 Market Garden harvested today at 06:00 AM. Sub-surface soil moisture optimal at 62°F.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Predictive Analysis Bar Charts -->
+            <div>
+              <div class="sec-title" style="margin-bottom:12px;" id="secTitlePredictive">Yield Forecast & Predictive Crop Analysis</div>
+              <div class="predictive-row">
+                <!-- January '26 -->
+                <div class="predict-card">
+                  <div class="predict-month">January '26</div>
+                  <div class="bar-group">
+                    <div class="bar-label"><span>Wheat</span><span>59%</span></div>
+                    <div class="bar-track"><div class="bar-fill wheat" style="width:59%;"></div></div>
+                  </div>
+                  <div class="bar-group">
+                    <div class="bar-label"><span>Rice & Produce</span><span>81%</span></div>
+                    <div class="bar-track"><div class="bar-fill rice" style="width:81%;"></div></div>
+                  </div>
+                  <div class="bar-group">
+                    <div class="bar-label"><span>Maize</span><span>13%</span></div>
+                    <div class="bar-track"><div class="bar-fill maize" style="width:13%;"></div></div>
+                  </div>
+                </div>
+
+                <!-- February '26 -->
+                <div class="predict-card">
+                  <div class="predict-month">February '26</div>
+                  <div class="bar-group">
+                    <div class="bar-label"><span>Wheat</span><span>68%</span></div>
+                    <div class="bar-track"><div class="bar-fill wheat" style="width:68%;"></div></div>
+                  </div>
+                  <div class="bar-group">
+                    <div class="bar-label"><span>Rice & Produce</span><span>88%</span></div>
+                    <div class="bar-track"><div class="bar-fill rice" style="width:88%;"></div></div>
+                  </div>
+                  <div class="bar-group">
+                    <div class="bar-label"><span>Maize</span><span>24%</span></div>
+                    <div class="bar-track"><div class="bar-fill maize" style="width:24%;"></div></div>
+                  </div>
+                </div>
+
+                <!-- March '26 -->
+                <div class="predict-card">
+                  <div class="predict-month">March '26</div>
+                  <div class="bar-group">
+                    <div class="bar-label"><span>Wheat</span><span>82%</span></div>
+                    <div class="bar-track"><div class="bar-fill wheat" style="width:82%;"></div></div>
+                  </div>
+                  <div class="bar-group">
+                    <div class="bar-label"><span>Rice & Produce</span><span>94%</span></div>
+                    <div class="bar-track"><div class="bar-fill rice" style="width:94%;"></div></div>
+                  </div>
+                  <div class="bar-group">
+                    <div class="bar-label"><span>Maize</span><span>45%</span></div>
+                    <div class="bar-track"><div class="bar-fill maize" style="width:45%;"></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Right Column (Weather Forecast + Harvesting Cost) -->
+          <div class="grid-col">
+            
+            <!-- Weather Forecast Header & Today Card -->
+            <div>
+              <div class="sec-header-row">
+                <h3 class="sec-title">Field Weather Telemetry</h3>
+                <a href="404.html" style="font-size:0.8rem; color:var(--forest); font-weight:700; text-decoration:none;">full report ↗</a>
+              </div>
+
+              <div class="weather-today-card">
+                <div>
+                  <div style="font-size:0.75rem; font-weight:600; color:var(--ink-soft); margin-bottom:2px; font-family:'JetBrains Mono', monospace;">WILLOW VALLEY STATION</div>
+                  <div class="w-temp-group">
+                    <span class="w-icon-big">🌤️</span>
+                    <div>
+                      <div class="w-temp-val">37° <span class="w-temp-unit">/ 23°</span></div>
+                      <div class="w-status">Rainy · Mild Humidity</div>
+                    </div>
+                  </div>
+                </div>
+                <span style="font-size:2.4rem;">🌡️</span>
+              </div>
+            </div>
+
+            <!-- 4-Day Forecast Grid -->
+            <div class="forecast-grid">
+              <div class="forecast-item">
+                <div class="f-date">25 JUNE</div>
+                <div class="f-temp">29°</div>
+                <div class="f-desc">Thunderstorm</div>
+              </div>
+
+              <div class="forecast-item">
+                <div class="f-date">26 JUNE</div>
+                <div class="f-temp">32°</div>
+                <div class="f-desc">Rainy cloudy</div>
+              </div>
+
+              <div class="forecast-item">
+                <div class="f-date">27 JUNE</div>
+                <div class="f-temp">39°</div>
+                <div class="f-desc">Semicloudy</div>
+              </div>
+
+              <div class="forecast-item">
+                <div class="f-date">28 JUNE</div>
+                <div class="f-temp">42°</div>
+                <div class="f-desc">Sunny · Humidity</div>
+              </div>
+            </div>
+
+            <!-- Harvesting Cost Donut Card -->
+            <div class="cost-card">
+              <div class="cost-card-head">
+                <h4 id="costCardHead">Operational Harvesting Costs</h4>
+                <span style="font-size:0.75rem; font-weight:600; color:var(--forest); font-family:'JetBrains Mono', monospace;">2026 CYCLE</span>
+              </div>
+
+              <div class="cost-body">
+                <div class="cost-list">
+                  <div class="cost-row">
+                    <span class="cost-lbl">Wheat Grain</span>
+                    <span class="cost-val">$76K</span>
+                  </div>
+                  <div class="cost-row">
+                    <span class="cost-lbl">Market Produce</span>
+                    <span class="cost-val">$24K</span>
+                  </div>
+
+                  <div class="cost-total">
+                    <label id="costTotalLabel">Total Operational Estimation</label>
+                    <div class="cost-total-num">$100K</div>
+                  </div>
+                </div>
+
+                <!-- SVG Donut Chart -->
+                <div class="donut-chart-box">
+                  <svg viewBox="0 0 36 36">
+                    <circle cx="18" cy="18" r="15.915" fill="none" stroke="#2E7D32" stroke-width="6" stroke-dasharray="76 24" stroke-dashoffset="0"></circle>
+                    <circle cx="18" cy="18" r="15.915" fill="none" stroke="#C0CA33" stroke-width="6" stroke-dasharray="24 76" stroke-dashoffset="-76"></circle>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ============================================ -->
+      <!-- TAB 2: ANALYTICS VIEW -->
+      <!-- ============================================ -->
+      <div class="tab-view" id="tabViewAnalytics">
+        <div class="sec-header-row">
+          <h2 class="sec-title" id="tab2Title">Farm Yield & Soil Science Analytics</h2>
+          <button class="mgr-btn" onclick="location.href='404.html'">🔄 Sync Sensors</button>
+        </div>
+
+        <div class="content-card-box">
+          <h3 style="font-family:'Fraunces',serif; color:var(--forest); margin-bottom:12px;">Sub-Surface Bio-Metrics & Carbon Sequestration</h3>
+          <p style="color:var(--ink-soft); font-size:0.92rem; margin-bottom:20px;">Real-time soil sensors across Field #1, #2 and #3 measuring mycorrhizal fungal health, earthworm activity, and carbon sink capacity.</p>
+          
+          <div class="summary-row" style="margin-bottom:24px;">
+            <div class="stat-card">
+              <div>
+                <label>Carbon Storage</label>
+                <div class="stat-val">142 <span class="stat-unit">Tons CO₂/Yr</span></div>
+              </div>
+              <span style="font-size:2rem;">🌍</span>
+            </div>
+            <div class="stat-card">
+              <div>
+                <label>Earthworm Density</label>
+                <div class="stat-val">420+ <span class="stat-unit">/ m³ Soil</span></div>
+              </div>
+              <span style="font-size:2rem;">🪱</span>
+            </div>
+            <div class="stat-card">
+              <div>
+                <label>Nitrogen Fixation</label>
+                <div class="stat-val">98.4% <span class="stat-unit">Optimal</span></div>
+              </div>
+              <span style="font-size:2rem;">🌱</span>
+            </div>
+            <div class="stat-card">
+              <div>
+                <label>Soil Moisture</label>
+                <div class="stat-val">62°F <span class="stat-unit">Uniform</span></div>
+              </div>
+              <span style="font-size:2rem;">💧</span>
+            </div>
+          </div>
+
+          <table class="table-custom">
+            <thead>
+              <tr>
+                <th>Field Zone</th>
+                <th>Crop Type</th>
+                <th>Moisture Index</th>
+                <th>Nitrogen Rate</th>
+                <th>Status</th>
+                <th>Manager Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Field #1 (North 30A)</td>
+                <td>Red Fife Wheat</td>
+                <td>62°F Optimal</td>
+                <td>98% Fixed</td>
+                <td><span class="badge-status ready">Threshing Ready</span></td>
+                <td><button class="mgr-btn" onclick="location.href='404.html'">Inspect Field</button></td>
+              </tr>
+              <tr>
+                <td>Field #2 (East 25A)</td>
+                <td>Organic Market Produce</td>
+                <td>64°F Mild</td>
+                <td>95% High</td>
+                <td><span class="badge-status active">Harvesting Daily</span></td>
+                <td><button class="mgr-btn" onclick="location.href='404.html'">Assign Crew</button></td>
+              </tr>
+              <tr>
+                <td>Field #3 (Apiary 20A)</td>
+                <td>Clover & Honeycomb</td>
+                <td>68°F Warm</td>
+                <td>100% Organic</td>
+                <td><span class="badge-status active">Active Honey Flow</span></td>
+                <td><button class="mgr-btn" onclick="location.href='404.html'">Check Hives</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ============================================ -->
+      <!-- TAB 3: FIELDS VIEW -->
+      <!-- ============================================ -->
+      <div class="tab-view" id="tabViewFields">
+        <div class="sec-header-row">
+          <h2 class="sec-title" id="tab3Title">Interactive 90-Acre Field Blueprint & Paddock Management</h2>
+          <button class="mgr-btn primary" onclick="location.href='404.html'">🗺️ Open GIS Map</button>
+        </div>
+
+        <div class="predictive-row">
+          <div class="predict-card" style="text-align:left;">
+            <div style="font-size:2rem; margin-bottom:8px;">🌾</div>
+            <h3 style="font-family:'Fraunces',serif; font-size:1.2rem; color:var(--forest); margin-bottom:4px;">Field #1 — Heritage Grains</h3>
+            <p style="font-size:0.85rem; color:var(--ink-soft); margin-bottom:12px;">30 Acres seeded with heirloom Red Fife wheat. Zero synthetic sprays.</p>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="badge-status ready">Active Harvest</span>
+              <button class="mgr-btn" onclick="location.href='404.html'">Moisture 62°F</button>
+            </div>
+          </div>
+
+          <div class="predict-card" style="text-align:left;">
+            <div style="font-size:2rem; margin-bottom:8px;">🥦</div>
+            <h3 style="font-family:'Fraunces',serif; font-size:1.2rem; color:var(--forest); margin-bottom:4px;">Field #2 — Organic Market Garden</h3>
+            <p style="font-size:0.85rem; color:var(--ink-soft); margin-bottom:12px;">25 Acres producing Brandywine tomatoes, carrots, and baby spinach.</p>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="badge-status ready">Daily Picking</span>
+              <button class="mgr-btn" onclick="location.href='404.html'">Soil N: 95%</button>
+            </div>
+          </div>
+
+          <div class="predict-card" style="text-align:left;">
+            <div style="font-size:2rem; margin-bottom:8px;">🐝</div>
+            <h3 style="font-family:'Fraunces',serif; font-size:1.2rem; color:var(--forest); margin-bottom:4px;">Field #3 — Wild Apiary & Pasture</h3>
+            <p style="font-size:0.85rem; color:var(--ink-soft); margin-bottom:12px;">20 Acres clover buffer housing 12 wild hives and pastured hen coops.</p>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="badge-status active">Active Pollination</span>
+              <button class="mgr-btn" onclick="location.href='404.html'">12 Hives</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================ -->
+      <!-- TAB 4: HARVESTING VIEW -->
+      <!-- ============================================ -->
+      <div class="tab-view" id="tabViewHarvesting">
+        <div class="sec-header-row">
+          <h2 class="sec-title" id="tab4Title">Morning Harvest Log & Dispatch Dispatching Center</h2>
+          <button class="mgr-btn primary" onclick="location.href='404.html'">🖨️ Print Dispatch Manifest</button>
+        </div>
+
+        <div class="content-card-box">
+          <table class="table-custom">
+            <thead>
+              <tr>
+                <th>Dispatch ID</th>
+                <th id="thRecipient">Delivery Route / Recipient</th>
+                <th>Box Share Type</th>
+                <th>Fresh Harvest Items</th>
+                <th>Dispatch Status</th>
+                <th>Manager Sign-Off</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>#STK-2026-089</td>
+                <td>Route #1 (Salem HQ & Retail)</td>
+                <td>Family Share Box</td>
+                <td>Tomatoes, Red Fife Flour, Wild Honey</td>
+                <td><span class="badge-status ready">Dispatched 08:30 AM</span></td>
+                <td><button class="mgr-btn" onclick="location.href='404.html'">Approved ✓</button></td>
+              </tr>
+              <tr>
+                <td>#STK-2026-090</td>
+                <td>Route #2 (Market Co-Op)</td>
+                <td>Weekly Produce Share</td>
+                <td>Pastured Hen Eggs, Carrots, Spinach</td>
+                <td><span class="badge-status pending">In Packing Shed</span></td>
+                <td><button class="mgr-btn primary" onclick="location.href='404.html'">Dispatch Now</button></td>
+              </tr>
+              <tr>
+                <td>#STK-2026-091</td>
+                <td>Route #3 (Artisan Bakery)</td>
+                <td>Artisan Grain & Honey Box</td>
+                <td>Wild Honeycomb, Sourdough Loaves</td>
+                <td><span class="badge-status ready">Dispatched 09:15 AM</span></td>
+                <td><button class="mgr-btn" onclick="location.href='404.html'">Approved ✓</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ============================================ -->
+      <!-- TAB 5: FINANCES VIEW -->
+      <!-- ============================================ -->
+      <div class="tab-view" id="tabViewFinances">
+        <div class="sec-header-row">
+          <h2 class="sec-title" id="tab5Title">Farm Revenue & Harvesting Cost Allocation</h2>
+          <button class="mgr-btn primary" onclick="location.href='404.html'">📥 Export Ledger</button>
+        </div>
+
+        <div class="summary-row" style="margin-bottom:24px;">
+          <div class="stat-card">
+            <div>
+              <label>Total Harvest Estimation</label>
+              <div class="stat-val">$100,000</div>
+            </div>
+            <span style="font-size:2rem;">💵</span>
+          </div>
+          <div class="stat-card">
+            <div>
+              <label id="lblFinanceOrders">Wholesale & Retail Orders</label>
+              <div class="stat-val">340 <span class="stat-unit">Active</span></div>
+            </div>
+            <span style="font-size:2rem;">👥</span>
+          </div>
+          <div class="stat-card">
+            <div>
+              <label>Gross Farm Revenue</label>
+              <div class="stat-val">$248,500</div>
+            </div>
+            <span style="font-size:2rem;">📈</span>
+          </div>
+          <div class="stat-card">
+            <div>
+              <label>Net Operating Margin</label>
+              <div class="stat-val">59.8%</div>
+            </div>
+            <span style="font-size:2rem;">✨</span>
+          </div>
+        </div>
+
+        <div class="content-card-box">
+          <h3 style="font-family:'Fraunces',serif; color:var(--forest); margin-bottom:12px;" id="titleStatements">Operating Ledger & Financial Statements</h3>
+          <table class="table-custom">
+            <thead>
+              <tr>
+                <th>Transaction Date</th>
+                <th>Category Description</th>
+                <th>Amount</th>
+                <th>Operating Statement</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Aug 01, 2026</td>
+                <td>Annual CSA Shareholder Renewal & Wholesale Bulk Delivery</td>
+                <td>$480.00</td>
+                <td><a href="404.html" style="color:var(--forest); font-weight:700;">Download Statement ↓</a></td>
+              </tr>
+              <tr>
+                <td>Jul 15, 2026</td>
+                <td>Equipment Solar Maintenance & Drip Lines Add-On</td>
+                <td>$32.50</td>
+                <td><a href="404.html" style="color:var(--forest); font-weight:700;">Download Statement ↓</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ============================================ -->
+      <!-- TAB 6: WEATHER VIEW -->
+      <!-- ============================================ -->
+      <div class="tab-view" id="tabViewWeather">
+        <div class="sec-header-row">
+          <h2 class="sec-title">Live Field Weather Telemetry & 7-Day Outlook</h2>
+          <button class="mgr-btn" onclick="location.href='404.html'">📡 Sync Radar</button>
+        </div>
+
+        <div class="dash-grid">
+          <div class="weather-today-card" style="padding:32px;">
+            <div>
+              <div style="font-family:'JetBrains Mono',monospace; font-size:0.8rem; color:var(--ink-soft); margin-bottom:6px;">WILLOW VALLEY STATION · REAL-TIME TELEMETRY</div>
+              <div class="w-temp-val" style="font-size:3.2rem;">37°C <span class="w-temp-unit">/ 23°C</span></div>
+              <div class="w-status" style="font-size:1rem; margin-top:8px;">Mild Light Rain · Wind 8 km/h NW · Humidity 64%</div>
+            </div>
+            <span style="font-size:4rem;">🌤️</span>
+          </div>
+
+          <div class="forecast-grid">
+            <div class="forecast-item"><div class="f-date">MON</div><div class="f-temp">29°</div><div class="f-desc">Thunderstorm</div></div>
+            <div class="forecast-item"><div class="f-date">TUE</div><div class="f-temp">32°</div><div class="f-desc">Rainy</div></div>
+            <div class="forecast-item"><div class="f-date">WED</div><div class="f-temp">39°</div><div class="f-desc">Semicloudy</div></div>
+            <div class="forecast-item"><div class="f-date">THU</div><div class="f-temp">42°</div><div class="f-desc">Sunny</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================ -->
+
+    </main>
+
+  </div>
+
+  <script>
+    // Manager vs. Customer Role Mode state
+    var currentRole = 'manager'; // default to Farm Manager role
+    var loggedInEmail = '';
+    var loggedInName = '';
+
+    var managerTabNames = ['Farm Ops', 'Yield Analytics', 'Field Blueprint', 'Harvest & Dispatch', 'Revenue & Costs', 'Field Weather'];
+    var customerTabNames = ['Dashboard', 'Analytics', 'Fields', 'Harvesting', 'Finances', 'Weather'];
+
+    // Switch Role Mode Function
+    function setDashboardRole(role) {
+      currentRole = role;
+      var profileNameEl = document.getElementById('profileNameDisplay');
+      var profileRoleEl = document.getElementById('profileRoleTagDisplay');
+      var mgrActionsBar = document.getElementById('mgrActionsBar');
+
+      var navBtns = document.querySelectorAll('#sidebarNavList .tab-label-text');
+
+      if (role === 'manager') {
+        if (profileNameEl) profileNameEl.textContent = loggedInEmail || 'Clara Vance';
+        if (profileRoleEl) profileRoleEl.textContent = 'Farm Manager • Active';
+        if (mgrActionsBar) mgrActionsBar.style.display = 'flex';
+
+        // Update Nav Tabs
+        navBtns.forEach(function(el, i) {
+          if (i < managerTabNames.length) el.textContent = managerTabNames[i];
+        });
+
+        // Update Specific Manager View Titles & Labels
+        updateElementText('secTitleSummary', 'Farm Operations Summary');
+        updateElementText('lblWheat', 'Wheat Harvest');
+        updateElementText('subWheat', 'Field #1 Production');
+        updateElementText('lblProduce', 'Vegetable Yield');
+        updateElementText('subProduce', 'Field #2 Market Garden');
+        updateElementText('secTitleFarm', 'Field Operations & Live Control');
+        updateElementText('bannerTitle', 'Willow Valley Field Operations Center');
+        updateElementText('bannerDesc', 'Field #1 Red Fife Wheat & Field #2 Market Garden harvested today at 06:00 AM. Sub-surface soil moisture optimal at 62°F.');
+        updateElementText('secTitlePredictive', 'Yield Forecast & Predictive Crop Analysis');
+        updateElementText('costCardHead', 'Operational Harvesting Costs');
+        updateElementText('costTotalLabel', 'Total Operational Estimation');
+        
+        updateElementText('tab2Title', 'Farm Yield & Soil Science Analytics');
+        updateElementText('tab3Title', 'Interactive 90-Acre Field Blueprint & Paddock Management');
+        updateElementText('tab4Title', 'Morning Harvest Log & Dispatching Center');
+        updateElementText('thRecipient', 'Delivery Route / Recipient');
+        
+        updateElementText('tab5Title', 'Farm Revenue & Harvesting Cost Allocation');
+        updateElementText('lblFinanceOrders', 'Wholesale & Retail Orders');
+        updateElementText('titleStatements', 'Operating Ledger & Financial Statements');
+
+      } else {
+        if (profileNameEl) profileNameEl.textContent = loggedInEmail || 'Clara Vance';
+        if (profileRoleEl) profileRoleEl.textContent = 'Customer Member • Active';
+        if (mgrActionsBar) mgrActionsBar.style.display = 'none';
+
+        // Update Nav Tabs
+        navBtns.forEach(function(el, i) {
+          if (i < customerTabNames.length) el.textContent = customerTabNames[i];
+        });
+
+        // Update Customer View Titles & Labels
+        updateElementText('secTitleSummary', 'Summary');
+        updateElementText('lblWheat', 'Wheat');
+        updateElementText('subWheat', 'Total production');
+        updateElementText('lblProduce', 'Rice & Produce');
+        updateElementText('subProduce', 'Total production');
+        updateElementText('secTitleFarm', 'Manage your farm');
+        updateElementText('bannerTitle', 'Willow Valley Field Operations');
+        updateElementText('bannerDesc', 'Field #1 & #2 harvested today at 06:00 AM. Soil moisture optimal at 62°F.');
+        updateElementText('secTitlePredictive', 'Predictive analysis');
+        updateElementText('costCardHead', 'Harvesting Cost');
+        updateElementText('costTotalLabel', 'Total estimation');
+
+        updateElementText('tab2Title', 'Farm Yield & Soil Science Analytics');
+        updateElementText('tab3Title', 'Interactive 90-Acre Field Blueprint');
+        updateElementText('tab4Title', 'Morning Harvest & CSA Fulfillment Log');
+        updateElementText('thRecipient', 'Member Name');
+
+        updateElementText('tab5Title', 'Financial Overview & Harvest Cost Allocation');
+        updateElementText('lblFinanceOrders', 'Active CSA Subscriptions');
+        updateElementText('titleStatements', 'Recent Subscription Statements');
+      }
+    }
+
+    function updateElementText(id, text) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = text;
+    }
+
+    // Load logged-in user into the profile badge & initialize role
+    (function initDashboard() {
+      var stored = null;
+      try { stored = JSON.parse(localStorage.getItem('stacklyUser') || 'null'); } catch (e) {}
+
+      if (stored) {
+        if (stored.email) loggedInEmail = stored.email;
+        if (stored.name) loggedInName = stored.name;
+      }
+
+      if (stored && stored.role === 'customer') {
+        setDashboardRole('customer');
+      } else {
+        setDashboardRole('manager');
+      }
+    })();
+
+    // Tab Switcher JS with smooth active class toggling
+    function switchDashTab(tabId, btn) {
+      document.querySelectorAll('.nav-item-btn').forEach(b => b.classList.remove('active'));
+      if(btn) btn.classList.add('active');
+
+      document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+
+      const targetMap = {
+        'dashboard': 'tabViewDashboard',
+        'analytics': 'tabViewAnalytics',
+        'fields': 'tabViewFields',
+        'harvesting': 'tabViewHarvesting',
+        'finances': 'tabViewFinances',
+        'weather': 'tabViewWeather'
+      };
+
+      const targetId = targetMap[tabId];
+      if(targetId) {
+        const viewEl = document.getElementById(targetId);
+        if(viewEl) viewEl.classList.add('active');
+      }
+    }
+
+  </script>
+
+</body>
+</html>
